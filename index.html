@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Ambrosia Random Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        button:disabled {
+            background-color: #cccccc;
+        }
+        #result {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        .api-section {
+            margin-top: 40px;
+            padding: 20px;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+        }
+        code {
+            background-color: #e0e0e0;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Random Number Generator</h1>
+    <button id="generate" onclick="generateNumber()" disabled>Generate Random Number</button>
+    <p>Result: <span id="result">-</span></p>
+    
+    <div class="api-section">
+        <h2>API Usage</h2>
+        <p>Make a GET request to:</p>
+        <code id="apiUrl">-</code>
+    </div>
+
+    <script type="module">
+        import init, { generate_random } from './pkg/ambrosia.js';
+
+        // Function to handle API requests
+        async function handleRequest(request) {
+            const url = new URL(request.url);
+            
+            // If path ends with /api, return JSON
+            if (url.pathname.endsWith('/api')) {
+                const result = {
+                    random_number: generate_random(),
+                    timestamp: new Date().toISOString()
+                };
+                
+                return new Response(JSON.stringify(result, null, 2), {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    }
+                });
+            }
+            
+            // Otherwise, return the normal page
+            return new Response(document.documentElement.outerHTML, {
+                headers: {
+                    'Content-Type': 'text/html'
+                }
+            });
+        }
+
+        async function setupWasm() {
+            try {
+                await init();
+                window.generateRandom = generate_random;
+                document.getElementById('generate').disabled = false;
+                
+                // Set up the API URL display
+                const baseUrl = window.location.href.replace(/\/$/, '');
+                document.getElementById('apiUrl').textContent = `${baseUrl}/api`;
+
+                // Register service worker for API handling
+                if ('serviceWorker' in navigator) {
+                    window.addEventListener('load', async () => {
+                        try {
+                            // Create and register an inline service worker
+                            const swCode = `
+                                self.addEventListener('fetch', event => {
+                                    if (event.request.url.endsWith('/api')) {
+                                        event.respondWith(
+                                            new Response(
+                                                JSON.stringify({
+                                                    random_number: Math.floor(Math.random() * 100) + 1,
+                                                    timestamp: new Date().toISOString()
+                                                }),
+                                                {
+                                                    headers: {
+                                                        'Content-Type': 'application/json',
+                                                        'Access-Control-Allow-Origin': '*'
+                                                    }
+                                                }
+                                            )
+                                        );
+                                    }
+                                });
+                            `;
+                            const blob = new Blob([swCode], {type: 'text/javascript'});
+                            const swUrl = URL.createObjectURL(blob);
+                            await navigator.serviceWorker.register(swUrl);
+                        } catch (error) {
+                            console.error('ServiceWorker registration failed:', error);
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to initialize WASM:', error);
+            }
+        }
+
+        window.generateNumber = function() {
+            try {
+                const result = generate_random();
+                document.getElementById('result').textContent = result;
+            } catch (error) {
+                console.error('Error generating number:', error);
+            }
+        }
+
+        setupWasm();
+    </script>
+</body>
+</html>
