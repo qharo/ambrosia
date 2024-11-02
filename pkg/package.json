@@ -1,0 +1,15 @@
+{
+  "name": "ambrosia",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "ambrosia_bg.wasm",
+    "ambrosia.js",
+    "ambrosia.d.ts"
+  ],
+  "main": "ambrosia.js",
+  "types": "ambrosia.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
