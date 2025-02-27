@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Diagonal SVG Generator</title>
+        <!-- Optional: Hint that this is an SVG, though GitHub Pages may ignore this -->
+        <meta http-equiv="Content-Type" content="image/svg+xml" />
+    </head>
+    <body>
+        <script>
+            // Default configuration
+            const defaults = {
+                width: 200,
+                height: 200,
+                rowTiles: 2,
+                colTiles: 2,
+                format: "svg\0", // Null-terminated string
+            };
+
+            // Parse URL query parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const config = {
+                width: parseInt(urlParams.get("width")) || defaults.width,
+                height: parseInt(urlParams.get("height")) || defaults.height,
+                rowTiles:
+                    parseInt(urlParams.get("row_tiles")) || defaults.rowTiles,
+                colTiles:
+                    parseInt(urlParams.get("col_tiles")) || defaults.colTiles,
+                format: defaults.format, // Format is unused in WASM, so stick with default
+            };
+
+            // Load and run the WASM module
+            WebAssembly.instantiateStreaming(fetch("diagonal.wasm"), {})
+                .then(({ instance }) => {
+                    const { generate_image, __wasm_memory } = instance.exports;
+
+                    // Buffer setup
+                    const bufferSize = 4096; // Adjust if needed for larger images
+                    const bufferPtr = 0; // Assuming memory starts at 0
+                    const memoryBuffer = new Uint8Array(
+                        __wasm_memory.buffer,
+                        bufferPtr,
+                        bufferSize
+                    );
+
+                    // Dummy format pointer (unused in WASM, so 0 is fine)
+                    const formatPtr = 0;
+
+                    // Generate the SVG
+                    const length = generate_image(
+                        config.width,
+                        config.height,
+                        config.rowTiles,
+                        config.colTiles,
+                        formatPtr,
+                        bufferPtr,
+                        bufferSize
+                    );
+
+                    if (length >= 0) {
+                        const svgString = new TextDecoder().decode(
+                            memoryBuffer.slice(0, length)
+                        );
+                        // Replace the entire page content with just the SVG
+                        document.open();
+                        document.write(svgString);
+                        document.close();
+                    } else {
+                        document.body.textContent =
+                            "Error: Buffer overflow or generation failed";
+                    }
+                })
+                .catch((err) => {
+                    document.body.textContent =
+                        "Error loading WASM: " + err.message;
+                });
+        </script>
+    </body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Ambrosia</title>
+        <!-- Tailwind CDN -->
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body>
+        <header class="bg-white">
+            <div class="mx-auto max-w-screen-xl px-4 py-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between">
+                    <h1 class="text-2xl font-bold text-gray-900">ambrosia</h1>
+                    <div class="flex items-center gap-4">
+                        <button
+                            class="inline-block rounded-sm bg-indigo-600 px-5 py-2 text-sm font-medium text-white transition hover:bg-indigo-700 focus:ring-3 focus:outline-hidden"
+                            type="button"
+                        >
+                            Learn More
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="mx-auto max-w-screen-xl px-4 py-8 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <!-- Card 1 -->
+                <a href="#" class="group relative block bg-black">
+                    <img
+                        alt="Project Alpha"
+                        src="https://images.unsplash.com/photo-1603871165848-0aa92c869fa1?ixlib=rb-1.2.1&auto=format&fit=crop&w=772&q=80"
+                        class="absolute inset-0 h-full w-full object-cover opacity-75 transition-opacity group-hover:opacity-50"
+                    />
+                    <div class="relative p-4 sm:p-6 lg:p-8">
+                        <p
+                            class="text-sm font-medium uppercase tracking-widest text-pink-500"
+                        >
+                            Developer
+                        </p>
+                        <p class="text-xl font-bold text-white sm:text-2xl">
+                            Project Alpha
+                        </p>
+                        <div class="mt-32 sm:mt-48 lg:mt-64">
+                            <div
+                                class="translate-y-8 transform opacity-0 transition-all group-hover:translate-y-0 group-hover:opacity-100"
+                            >
+                                <p class="text-sm text-white">
+                                    Lorem ipsum dolor sit amet consectetur
+                                    adipisicing elit.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Card 2 -->
+                <a href="#" class="group relative block bg-black">
+                    <img
+                        alt="Project Beta"
+                        src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-1.2.1&auto=format&fit=crop&w=772&q=80"
+                        class="absolute inset-0 h-full w-full object-cover opacity-75 transition-opacity group-hover:opacity-50"
+                    />
+                    <div class="relative p-4 sm:p-6 lg:p-8">
+                        <p
+                            class="text-sm font-medium uppercase tracking-widest text-pink-500"
+                        >
+                            Designer
+                        </p>
+                        <p class="text-xl font-bold text-white sm:text-2xl">
+                            Project Beta
+                        </p>
+                        <div class="mt-32 sm:mt-48 lg:mt-64">
+                            <div
+                                class="translate-y-8 transform opacity-0 transition-all group-hover:translate-y-0 group-hover:opacity-100"
+                            >
+                                <p class="text-sm text-white">
+                                    Omnis perferendis hic asperiores quibusdam
+                                    quidem voluptates.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Add more cards here as needed -->
+            </div>
+        </main>
+    </body>
+</html>
