@@ -3,21 +3,18 @@
     <head>
         <meta charset="UTF-8" />
         <title>Diagonal SVG Generator</title>
-        <!-- Optional: Hint that this is an SVG, though GitHub Pages may ignore this -->
         <meta http-equiv="Content-Type" content="image/svg+xml" />
     </head>
     <body>
         <script>
-            // Default configuration
             const defaults = {
                 width: 200,
                 height: 200,
                 rowTiles: 2,
                 colTiles: 2,
-                format: "svg\0", // Null-terminated string
+                format: "svg\0",
             };
 
-            // Parse URL query parameters
             const urlParams = new URLSearchParams(window.location.search);
             const config = {
                 width: parseInt(urlParams.get("width")) || defaults.width,
@@ -26,25 +23,23 @@
                     parseInt(urlParams.get("row_tiles")) || defaults.rowTiles,
                 colTiles:
                     parseInt(urlParams.get("col_tiles")) || defaults.colTiles,
-                format: defaults.format, // Format is unused in WASM, so stick with default
+                format: defaults.format,
             };
 
-            // Load and run the WASM module
-            console.log(fetch("./diagonal.wasm"));
             WebAssembly.instantiateStreaming(fetch("./diagonal.wasm"), {})
                 .then(({ instance }) => {
-                    const { generate_image, __wasm_memory } = instance.exports;
+                    const { generate_image, memory } = instance.exports;
 
                     // Buffer setup
-                    const bufferSize = 4096; // Adjust if needed for larger images
-                    const bufferPtr = 0; // Assuming memory starts at 0
+                    const bufferSize = 4096; // Ensure this fits your SVG output
+                    const bufferPtr = 0; // Start of memory
                     const memoryBuffer = new Uint8Array(
-                        __wasm_memory.buffer,
+                        memory.buffer,
                         bufferPtr,
                         bufferSize
                     );
 
-                    // Dummy format pointer (unused in WASM, so 0 is fine)
+                    // Dummy format pointer (unused, so 0 is fine)
                     const formatPtr = 0;
 
                     // Generate the SVG
@@ -62,7 +57,6 @@
                         const svgString = new TextDecoder().decode(
                             memoryBuffer.slice(0, length)
                         );
-                        // Replace the entire page content with just the SVG
                         document.open();
                         document.write(svgString);
                         document.close();
