@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="Content-Type" content="image/svg+xml" />
+    </head>
+    <body style="margin: 0; padding: 0">
+        <div id="content"></div>
+        <script>
+            const defaults = {
+                width: 500,
+                height: 500,
+                rowTiles: 8,
+                colTiles: 8,
+                format: "svg\0",
+            };
+
+            const maxLimits = {
+                width: 3840,
+                height: 2160,
+                // Row and column tiles are limited based on dimensions in the C code
+            };
+
+            const urlParams = new URLSearchParams(window.location.search);
+            // Parse URL parameters with default fallbacks
+            let width = parseInt(urlParams.get("width")) || defaults.width;
+            let height = parseInt(urlParams.get("height")) || defaults.height;
+
+            // Apply maximum limits
+            width = Math.min(width, maxLimits.width);
+            height = Math.min(height, maxLimits.height);
+
+            // Calculate max tiles based on dimensions
+            const maxRowTiles = Math.floor(height / 20);
+            const maxColTiles = Math.floor(width / 20);
+
+            // Parse tile parameters and apply limits
+            let rowTiles =
+                parseInt(urlParams.get("row_tiles")) || defaults.rowTiles;
+            let colTiles =
+                parseInt(urlParams.get("col_tiles")) || defaults.colTiles;
+            rowTiles = Math.min(rowTiles, maxRowTiles);
+            colTiles = Math.min(colTiles, maxColTiles);
+            console.log(colTiles);
+
+            const config = {
+                width: width,
+                height: height,
+                rowTiles: rowTiles,
+                colTiles: colTiles,
+                format: defaults.format,
+            };
+
+            fetch("./diagonal.wasm")
+                .then((response) => response.arrayBuffer())
+                .then((bytes) =>
+                    WebAssembly.instantiate(bytes, {
+                        wasi_snapshot_preview1: {
+                            proc_exit: () => {},
+                            fd_close: () => 0,
+                            fd_write: () => 0,
+                            fd_seek: () => 0,
+                            fd_read: () => 0,
+                            environ_sizes_get: () => 0,
+                            environ_get: () => 0,
+                        },
+                        env: {
+                            memory: new WebAssembly.Memory({ initial: 10 }),
+                        },
+                    })
+                )
+                .then((result) => {
+                    const instance = result.instance;
+                    const generate_image =
+                        instance.exports._generate_image ||
+                        instance.exports.generate_image;
+                    const memory =
+                        instance.exports.memory || instance.imports.env.memory;
+
+                    if (!generate_image) {
+                        document.getElementById("content").textContent =
+                            "Error: generate_image function not found";
+                        return;
+                    }
+
+                    const bufferSize = 100000;
+                    const bufferPtr = 1024;
+                    const formatStringBytes = new TextEncoder().encode(
+                        config.format
+                    );
+                    const formatPtr = bufferSize + 100;
+
+                    const memView = new Uint8Array(memory.buffer);
+                    formatStringBytes.forEach((byte, i) => {
+                        memView[formatPtr + i] = byte;
+                    });
+
+                    try {
+                        const estimatedSize =
+                            1000 + config.rowTiles * config.colTiles * 120;
+                        const actualBufferSize = Math.min(
+                            bufferSize,
+                            estimatedSize
+                        );
+
+                        const length = generate_image(
+                            config.width,
+                            config.height,
+                            config.rowTiles,
+                            config.colTiles,
+                            formatPtr,
+                            bufferPtr,
+                            actualBufferSize
+                        );
+
+                        if (length >= 0) {
+                            const memoryBuffer = new Uint8Array(
+                                memory.buffer,
+                                bufferPtr,
+                                length
+                            );
+                            const svgString = new TextDecoder().decode(
+                                memoryBuffer
+                            );
+                            document.getElementById("content").innerHTML =
+                                svgString;
+
+                            // Auto download option if download=true is in URL
+                            if (urlParams.get("download") === "true") {
+                                const svgBlob = new Blob([svgString], {
+                                    type: "image/svg+xml",
+                                });
+                                const downloadLink =
+                                    document.createElement("a");
+                                downloadLink.href =
+                                    URL.createObjectURL(svgBlob);
+                                downloadLink.download = "diagonal.svg";
+                                document.body.appendChild(downloadLink);
+                                downloadLink.click();
+                                document.body.removeChild(downloadLink);
+                            }
+                        } else {
+                            document.getElementById(
+                                "content"
+                            ).textContent = `Error: Generation failed (code: ${length})`;
+                        }
+                    } catch (error) {
+                        document.getElementById("content").textContent =
+                            "Error: " + error.message;
+                    }
+                })
+                .catch((error) => {
+                    document.getElementById("content").textContent =
+                        "Error loading WASM: " + error.message;
+                });
+        </script>
+    </body>
+</html>

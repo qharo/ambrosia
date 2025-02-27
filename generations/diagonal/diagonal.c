@@ -1,4 +1,3 @@
-// diagonal.c
 #include <stdio.h>
 #include <stdbool.h>
 #include <emscripten.h>
@@ -17,9 +16,16 @@ int generate_image(
     // Unused parameter
     (void)format;
     
-    // Cap tile count to avoid buffer overflow
-    if (row_tiles > 15) row_tiles = 15;
-    if (col_tiles > 15) col_tiles = 15;
+    // Cap dimensions to max allowed
+    if (width > 3840) width = 3840;
+    if (height > 2160) height = 2160;
+    
+    // Cap tile count based on dimensions (height/20 and width/20) and to avoid buffer overflow
+    unsigned int max_row_tiles = height / 20;
+    unsigned int max_col_tiles = width / 20;
+    
+    if (row_tiles > max_row_tiles) row_tiles = max_row_tiles;
+    if (col_tiles > max_col_tiles) col_tiles = max_col_tiles;
     
     unsigned int tile_width = width / col_tiles;
     unsigned int tile_height = height / row_tiles;
