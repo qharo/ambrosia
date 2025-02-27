@@ -28,18 +28,18 @@
 
             WebAssembly.instantiateStreaming(fetch("./diagonal.wasm"), {})
                 .then(({ instance }) => {
-                    const { generate_image, memory } = instance.exports;
+                    const { generate_image, wasm_memory } = instance.exports;
 
                     // Buffer setup
-                    const bufferSize = 4096; // Ensure this fits your SVG output
-                    const bufferPtr = 0; // Start of memory
+                    const bufferSize = 4096;
+                    const bufferPtr = 0;
                     const memoryBuffer = new Uint8Array(
-                        memory.buffer,
+                        wasm_memory.buffer,
                         bufferPtr,
                         bufferSize
                     );
 
-                    // Dummy format pointer (unused, so 0 is fine)
+                    // Dummy format pointer (unused)
                     const formatPtr = 0;
 
                     // Generate the SVG

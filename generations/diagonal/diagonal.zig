@@ -1,7 +1,7 @@
 const std = @import("std");
 
-// Define a fixed-size memory block (e.g., 1 page = 64KiB)
-export const memory: [65536]u8 = undefined; // 1 page of memory; adjust size as needed
+// Define and export memory with a unique name
+export const wasm_memory: [65536]u8 = undefined; // Renamed from 'memory'
 
 // Export the generate_image function
 export fn generate_image(
@@ -13,7 +13,7 @@ export fn generate_image(
     out_buffer: [*]u8,
     buffer_len: u32,
 ) i32 {
-    _ = format; // Unused
+    _ = format;
 
     const tile_width = width / col_tiles;
     const tile_height = height / row_tiles;
