@@ -30,7 +30,8 @@
             };
 
             // Load and run the WASM module
-            WebAssembly.instantiateStreaming(fetch("diagonal.wasm"), {})
+            console.log(fetch("./diagonal.wasm"));
+            WebAssembly.instantiateStreaming(fetch("./diagonal.wasm"), {})
                 .then(({ instance }) => {
                     const { generate_image, __wasm_memory } = instance.exports;
 
